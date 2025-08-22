@@ -16,182 +16,120 @@ export type Database = {
     Tables: {
       companies: {
         Row: {
-          contact_email: string
+          contact_email: string | null
           created_at: string
-          deleted_at: string | null
           description: string | null
           id: string
           logo_url: string | null
-          name: string
-          sector_id: number | null
+          name: string | null
+          sector: string | null
           updated_at: string
+          user_id: string
         }
         Insert: {
-          contact_email: string
+          contact_email?: string | null
           created_at?: string
-          deleted_at?: string | null
-          description?: string | null
-          id: string
-          logo_url?: string | null
-          name: string
-          sector_id?: number | null
-          updated_at?: string
-        }
-        Update: {
-          contact_email?: string
-          created_at?: string
-          deleted_at?: string | null
           description?: string | null
           id?: string
           logo_url?: string | null
-          name?: string
-          sector_id?: number | null
+          name?: string | null
+          sector?: string | null
           updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "companies_id_fkey"
-            columns: ["id"]
-            isOneToOne: true
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_sector"
-            columns: ["sector_id"]
-            isOneToOne: false
-            referencedRelation: "sectors"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      developer_skills: {
-        Row: {
-          created_at: string
-          developer_id: string
-          skill_id: number
-        }
-        Insert: {
-          created_at?: string
-          developer_id: string
-          skill_id: number
+          user_id: string
         }
         Update: {
+          contact_email?: string | null
           created_at?: string
-          developer_id?: string
-          skill_id?: number
+          description?: string | null
+          id?: string
+          logo_url?: string | null
+          name?: string | null
+          sector?: string | null
+          updated_at?: string
+          user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "developer_skills_developer_id_fkey"
-            columns: ["developer_id"]
-            isOneToOne: false
-            referencedRelation: "developers"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "developer_skills_skill_id_fkey"
-            columns: ["skill_id"]
-            isOneToOne: false
-            referencedRelation: "skills"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       developers: {
         Row: {
           avatar_url: string | null
           created_at: string
           cv_url: string | null
-          deleted_at: string | null
-          email: string
+          email: string | null
           github_link: string | null
           id: string
           linkedin_link: string | null
-          name: string
+          name: string | null
+          skills: string[] | null
           updated_at: string
+          user_id: string
         }
         Insert: {
           avatar_url?: string | null
           created_at?: string
           cv_url?: string | null
-          deleted_at?: string | null
-          email: string
+          email?: string | null
           github_link?: string | null
-          id: string
+          id?: string
           linkedin_link?: string | null
-          name: string
+          name?: string | null
+          skills?: string[] | null
           updated_at?: string
+          user_id: string
         }
         Update: {
           avatar_url?: string | null
           created_at?: string
           cv_url?: string | null
-          deleted_at?: string | null
-          email?: string
+          email?: string | null
           github_link?: string | null
           id?: string
           linkedin_link?: string | null
-          name?: string
+          name?: string | null
+          skills?: string[] | null
           updated_at?: string
+          user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "developers_id_fkey"
-            columns: ["id"]
-            isOneToOne: true
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       profiles: {
         Row: {
           created_at: string
           id: string
-          role: string
+          role: Database["public"]["Enums"]["user_role"]
           updated_at: string
+          user_id: string
         }
         Insert: {
           created_at?: string
-          id: string
-          role: string
+          id?: string
+          role: Database["public"]["Enums"]["user_role"]
           updated_at?: string
+          user_id: string
         }
         Update: {
           created_at?: string
           id?: string
-          role?: string
+          role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string
-        }
-        Relationships: []
-      }
-      sectors: {
-        Row: {
-          id: number
-          name: string
-        }
-        Insert: {
-          id?: number
-          name: string
-        }
-        Update: {
-          id?: number
-          name?: string
+          user_id?: string
         }
         Relationships: []
       }
       skills: {
         Row: {
-          id: number
+          created_at: string
+          id: string
           name: string
         }
         Insert: {
-          id?: number
+          created_at?: string
+          id?: string
           name: string
         }
         Update: {
-          id?: number
+          created_at?: string
+          id?: string
           name?: string
         }
         Relationships: []
@@ -204,7 +142,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      user_role: "developer" | "company"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -331,6 +269,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      user_role: ["developer", "company"],
+    },
   },
 } as const
