@@ -25,7 +25,7 @@ const profileSchema = z.object({
 type ProfileFormData = z.infer<typeof profileSchema>;
 
 interface Skill {
-  id: string;
+  id: number;
   name: string;
 }
 
@@ -35,9 +35,11 @@ interface DeveloperProfile {
   email: string | null;
   github_link: string | null;
   linkedin_link: string | null;
-  skills: string[] | null;
   avatar_url: string | null;
   cv_url: string | null;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
 }
 
 export default function DeveloperProfile() {
@@ -75,10 +77,11 @@ export default function DeveloperProfile() {
     if (!user) return;
 
     try {
+      // Load developer profile
       const { data, error } = await supabase
         .from('developers')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('id', user.id)
         .maybeSingle();
 
       if (error) throw error;
@@ -89,9 +92,24 @@ export default function DeveloperProfile() {
         setValue('email', data.email || '');
         setValue('github_link', data.github_link || '');
         setValue('linkedin_link', data.linkedin_link || '');
-        const skills = data.skills || [];
-        setValue('skills', skills);
-        setSelectedSkills(skills);
+        
+        // Load developer skills
+        const { data: skillsData, error: skillsError } = await supabase
+          .from('developer_skills')
+          .select(`
+            skill_id,
+            skills (
+              id,
+              name
+            )
+          `)
+          .eq('developer_id', user.id);
+
+        if (skillsError) throw skillsError;
+
+        const skillNames = skillsData?.map(ds => (ds.skills as any)?.name).filter(Boolean) || [];
+        setValue('skills', skillNames);
+        setSelectedSkills(skillNames);
       }
     } catch (error: any) {
       toast({
@@ -168,6 +186,44 @@ export default function DeveloperProfile() {
     setValue('skills', newSkills);
   };
 
+  const updateDeveloperSkills = async (developerId: string, skillNames: string[]) => {
+    try {
+      // First, remove all existing skills for this developer
+      await supabase
+        .from('developer_skills')
+        .delete()
+        .eq('developer_id', developerId);
+
+      // Then add the new skills
+      if (skillNames.length > 0) {
+        // Get skill IDs for the skill names
+        const { data: skillsData, error: skillsError } = await supabase
+          .from('skills')
+          .select('id, name')
+          .in('name', skillNames);
+
+        if (skillsError) throw skillsError;
+
+        // Create developer_skills entries
+        const developerSkillsData = skillsData?.map(skill => ({
+          developer_id: developerId,
+          skill_id: skill.id
+        })) || [];
+
+        if (developerSkillsData.length > 0) {
+          const { error: insertError } = await supabase
+            .from('developer_skills')
+            .insert(developerSkillsData);
+
+          if (insertError) throw insertError;
+        }
+      }
+    } catch (error) {
+      console.error('Error updating developer skills:', error);
+      throw error;
+    }
+  };
+
   const uploadFile = async (file: File, bucket: string, folder: string): Promise<string> => {
     if (!user) throw new Error('No user found');
 
@@ -199,14 +255,13 @@ export default function DeveloperProfile() {
       const { error } = await supabase
         .from('developers')
         .upsert({
-          user_id: user.id,
+          id: user.id,
           avatar_url: avatarUrl,
           // Keep existing data
-          name: profile?.name,
-          email: profile?.email,
+          name: profile?.name || '',
+          email: profile?.email || '',
           github_link: profile?.github_link,
           linkedin_link: profile?.linkedin_link,
-          skills: profile?.skills,
           cv_url: profile?.cv_url
         });
 
@@ -249,12 +304,11 @@ export default function DeveloperProfile() {
 
       // Update or create developer profile
       const profileData = {
-        user_id: user.id,
+        id: user.id,
         name: data.name,
         email: data.email,
         github_link: data.github_link || null,
         linkedin_link: data.linkedin_link || null,
-        skills: data.skills,
         avatar_url: profile?.avatar_url, // Avatar is updated separately
         cv_url: cvUrl
       };
@@ -264,6 +318,9 @@ export default function DeveloperProfile() {
         .upsert(profileData);
 
       if (error) throw error;
+
+      // Update developer skills
+      await updateDeveloperSkills(user.id, data.skills);
 
       toast({
         title: 'Perfil actualizado',

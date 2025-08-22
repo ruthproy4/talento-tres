@@ -5,7 +5,6 @@ import { useToast } from '@/hooks/use-toast';
 
 interface Profile {
   id: string;
-  user_id: string;
   role: 'developer' | 'company';
   created_at: string;
   updated_at: string;
@@ -36,7 +35,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
-        .eq('user_id', userId)
+        .eq('id', userId)
         .maybeSingle();
 
       if (error) {
@@ -45,7 +44,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       console.log('Profile fetched from DB:', data);
-      setProfile(data);
+      setProfile(data as Profile);
     } catch (error) {
       console.error('Error fetching profile:', error);
     }
@@ -64,13 +63,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           const userRole = session.user.user_metadata?.role as 'developer' | 'company';
           console.log('User role from metadata:', userRole);
           if (userRole) {
-            const tempProfile = {
-              id: '', // Will be updated from DB
-              user_id: session.user.id,
-              role: userRole,
-              created_at: '',
-              updated_at: ''
-            };
+          const tempProfile = {
+            id: session.user.id,
+            role: userRole,
+            created_at: '',
+            updated_at: ''
+          };
             console.log('Setting temporary profile:', tempProfile);
             setProfile(tempProfile);
           }
@@ -97,8 +95,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const userRole = session.user.user_metadata?.role as 'developer' | 'company';
         if (userRole) {
           setProfile({
-            id: '',
-            user_id: session.user.id,
+            id: session.user.id,
             role: userRole,
             created_at: '',
             updated_at: ''
