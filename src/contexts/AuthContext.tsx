@@ -50,6 +50,52 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  // Resolve user role when it's missing from metadata by inferring from existing rows
+  // and ensure a profiles row exists for the user (respects RLS)
+  const resolveAndEnsureProfile = async (userId: string) => {
+    try {
+      // 1) Try to read existing profile
+      const { data: existingProfile, error: profileErr } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .maybeSingle();
+
+      if (existingProfile) {
+        console.log('Existing profile found, using it');
+        setProfile(existingProfile as Profile);
+        return;
+      }
+
+      // 2) Infer role by checking developers/companies tables (both are publicly readable)
+      const [devRes, compRes] = await Promise.all([
+        supabase.from('developers').select('id').eq('id', userId).maybeSingle(),
+        supabase.from('companies').select('id').eq('id', userId).maybeSingle(),
+      ]);
+
+      let inferredRole: 'developer' | 'company' | null = null;
+      if (devRes.data) inferredRole = 'developer';
+      else if (compRes.data) inferredRole = 'company';
+
+      if (inferredRole) {
+        console.log('Inferred role from existing tables:', inferredRole);
+        // Update UI immediately for redirects
+        setProfile({ id: userId, role: inferredRole, created_at: '', updated_at: '' });
+        // 3) Ensure profiles row exists (upsert id+role)
+        const { error: upsertErr } = await supabase
+          .from('profiles')
+          .upsert({ id: userId, role: inferredRole }, { onConflict: 'id' });
+        if (upsertErr) {
+          console.warn('Upsert profiles error (will continue with inferred role):', upsertErr);
+        }
+      } else {
+        console.warn('No role could be inferred for user. User may need to complete onboarding.');
+      }
+    } catch (e) {
+      console.error('Error resolving/ensuring profile:', e);
+    }
+  };
+
   useEffect(() => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -71,6 +117,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           };
             console.log('Setting temporary profile:', tempProfile);
             setProfile(tempProfile);
+          }
+          if (!userRole) {
+            setTimeout(() => {
+              resolveAndEnsureProfile(session.user.id);
+            }, 0);
           }
           
           // Defer profile fetch to avoid auth state listener issues
@@ -100,6 +151,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             created_at: '',
             updated_at: ''
           });
+        } else {
+          setTimeout(() => {
+            resolveAndEnsureProfile(session.user.id);
+          }, 0);
         }
         
         setTimeout(() => {
