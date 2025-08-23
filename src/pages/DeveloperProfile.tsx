@@ -78,7 +78,7 @@ export default function DeveloperProfile() {
       const { data, error } = await supabase
         .from('developers')
         .select('*')
-        .eq('id', user.id)
+        .eq('user_id', user.id)
         .maybeSingle();
 
       if (error) throw error;
@@ -199,7 +199,7 @@ export default function DeveloperProfile() {
       const { error } = await supabase
         .from('developers')
         .upsert({
-          id: user.id,
+          user_id: user.id,
           avatar_url: avatarUrl,
           // Keep existing data
           name: profile?.name,
@@ -208,7 +208,7 @@ export default function DeveloperProfile() {
           linkedin_link: profile?.linkedin_link,
           skills: profile?.skills,
           cv_url: profile?.cv_url
-        } as any);
+        });
 
       if (error) throw error;
 
@@ -249,7 +249,7 @@ export default function DeveloperProfile() {
 
       // Update or create developer profile
       const profileData = {
-        id: user.id,
+        user_id: user.id,
         name: data.name,
         email: data.email,
         github_link: data.github_link || null,
@@ -261,7 +261,7 @@ export default function DeveloperProfile() {
 
       const { error } = await supabase
         .from('developers')
-        .upsert(profileData as any);
+        .upsert(profileData);
 
       if (error) throw error;
 
