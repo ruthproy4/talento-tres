@@ -25,7 +25,7 @@ const profileSchema = z.object({
 type ProfileFormData = z.infer<typeof profileSchema>;
 
 interface Skill {
-  id: string;
+  id: number;
   name: string;
 }
 
@@ -78,18 +78,18 @@ export default function DeveloperProfile() {
       const { data, error } = await supabase
         .from('developers')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('id', user.id)
         .maybeSingle();
 
       if (error) throw error;
 
       if (data) {
-        setProfile(data);
+        setProfile(data as any);
         setValue('name', data.name || '');
         setValue('email', data.email || '');
         setValue('github_link', data.github_link || '');
         setValue('linkedin_link', data.linkedin_link || '');
-        const skills = data.skills || [];
+        const skills = (data as any).skills || [];
         setValue('skills', skills);
         setSelectedSkills(skills);
       }
@@ -172,8 +172,8 @@ export default function DeveloperProfile() {
     if (!user) throw new Error('No user found');
 
     const fileExt = file.name.split('.').pop();
-    const fileName = `${user.id}/${Date.now()}.${fileExt}`;
-    const filePath = `${folder}/${fileName}`;
+      const fileName = `${Date.now()}.${fileExt}`;
+      const filePath = folder ? `${folder}/${user.id}/${fileName}` : `${user.id}/${fileName}`;
 
     const { error: uploadError } = await supabase.storage
       .from(bucket)
@@ -193,17 +193,17 @@ export default function DeveloperProfile() {
     
     setUploading(true);
     try {
-      const avatarUrl = await uploadFile(file, 'avatars', 'developer-avatars');
+      const avatarUrl = await uploadFile(file, 'avatars', '');
       
       // Update the profile in the database immediately
       const { error } = await supabase
         .from('developers')
         .upsert({
-          user_id: user.id,
+          id: user.id,
           avatar_url: avatarUrl,
           // Keep existing data
-          name: profile?.name,
-          email: profile?.email,
+          name: profile?.name ?? '',
+          email: profile?.email ?? (user.email ?? ''),
           github_link: profile?.github_link,
           linkedin_link: profile?.linkedin_link,
           skills: profile?.skills,
@@ -249,7 +249,7 @@ export default function DeveloperProfile() {
 
       // Update or create developer profile
       const profileData = {
-        user_id: user.id,
+        id: user.id,
         name: data.name,
         email: data.email,
         github_link: data.github_link || null,

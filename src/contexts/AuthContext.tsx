@@ -5,7 +5,6 @@ import { useToast } from '@/hooks/use-toast';
 
 interface Profile {
   id: string;
-  user_id: string;
   role: 'developer' | 'company';
   created_at: string;
   updated_at: string;
@@ -36,7 +35,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
-        .eq('user_id', userId)
+        .eq('id', userId)
         .maybeSingle();
 
       if (error) {
@@ -45,7 +44,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       console.log('Profile fetched from DB:', data);
-      setProfile(data);
+      setProfile(data as any);
     } catch (error) {
       console.error('Error fetching profile:', error);
     }
@@ -66,7 +65,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           if (userRole) {
             const tempProfile = {
               id: '', // Will be updated from DB
-              user_id: session.user.id,
               role: userRole,
               created_at: '',
               updated_at: ''
@@ -98,7 +96,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (userRole) {
           setProfile({
             id: '',
-            user_id: session.user.id,
             role: userRole,
             created_at: '',
             updated_at: ''
