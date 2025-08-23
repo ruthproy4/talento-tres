@@ -20,7 +20,6 @@ export default function Login() {
 
   // Redirect authenticated users to their welcome page
   useEffect(() => {
-    console.log('Login effect - User:', !!user, 'Profile:', profile, 'Role:', profile?.role);
     if (user && profile?.role) {
       console.log('Login: User authenticated, redirecting to welcome page for role:', profile.role);
       if (profile.role === 'developer') {
