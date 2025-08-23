@@ -12,7 +12,8 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Textarea } from '@/components/ui/textarea';
-import { X, Upload, Github, Linkedin, User, Mail, FileText } from 'lucide-react';
+import { X, Upload, Github, Linkedin, User, Mail, FileText, ArrowLeft } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const profileSchema = z.object({
   name: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
@@ -43,6 +44,7 @@ interface DeveloperProfile {
 export default function DeveloperProfile() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [profile, setProfile] = useState<DeveloperProfile | null>(null);
   const [availableSkills, setAvailableSkills] = useState<Skill[]>([]);
@@ -297,10 +299,21 @@ export default function DeveloperProfile() {
       <div className="max-w-4xl mx-auto">
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-2xl">
-              <User className="h-6 w-6 text-primary" />
-              Perfil de Desarrollador
-            </CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2 text-2xl">
+                <User className="h-6 w-6 text-primary" />
+                Perfil de Desarrollador
+              </CardTitle>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigate('/welcome-developer')}
+                className="flex items-center gap-2"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Volver
+              </Button>
+            </div>
           </CardHeader>
           
           <CardContent>
