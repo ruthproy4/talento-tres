@@ -307,7 +307,7 @@ export default function DeveloperProfile() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => navigate('/welcome-developer')}
+                onClick={() => navigate('/welcome/developer')}
                 className="flex items-center gap-2"
               >
                 <ArrowLeft className="h-4 w-4" />
