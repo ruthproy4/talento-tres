@@ -13,11 +13,16 @@ export default function ConfirmRegistration() {
 
   useEffect(() => {
     const confirmUser = async () => {
-      // Check different possible parameter formats that Supabase might send
-      const token_hash = searchParams.get('token_hash') || searchParams.get('token');
-      const type = searchParams.get('type');
-      const access_token = searchParams.get('access_token');
-      const refresh_token = searchParams.get('refresh_token');
+      // Parse both query and hash parameters (Supabase often uses hash #)
+      const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+      const getParam = (key: string) => searchParams.get(key) || hashParams.get(key);
+
+      const token_hash = getParam('token_hash') || getParam('token');
+      const type = getParam('type');
+      const access_token = getParam('access_token');
+      const refresh_token = getParam('refresh_token');
+      const error_code = getParam('error_code');
+      const error_description = getParam('error_description');
       
       // Log all URL parameters for debugging
       console.log('ConfirmRegistration - All search params:', Object.fromEntries(searchParams.entries()));
@@ -26,6 +31,14 @@ export default function ConfirmRegistration() {
       console.log('ConfirmRegistration - access_token:', access_token);
       console.log('ConfirmRegistration - refresh_token:', refresh_token);
       console.log('ConfirmRegistration - Current URL:', window.location.href);
+
+      // If Supabase returned an error in the URL, surface it clearly
+      if (error_code) {
+        console.error('ConfirmRegistration - Error from Supabase:', { error_code, error_description });
+        setStatus('error');
+        setMessage(error_description || 'Enlace de confirmación inválido.');
+        return;
+      }
 
       // Handle different authentication scenarios
       if (access_token && refresh_token) {
