@@ -3,9 +3,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DarkModeToggle } from '@/components/DarkModeToggle';
 import { useAuth } from '@/contexts/AuthContext';
 import { Users, Building, Search, Star, LogOut } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 export default function WelcomeCompany() {
   const { user, signOut } = useAuth();
+  const navigate = useNavigate();
 
   return (
     <div className="min-h-screen bg-background">
@@ -61,7 +63,11 @@ export default function WelcomeCompany() {
               <p className="text-muted-foreground mb-4">
                 Completa la información de tu empresa, sube tu logo y describe tu cultura.
               </p>
-              <Button variant="accent" className="w-full">
+              <Button 
+                variant="accent" 
+                className="w-full"
+                onClick={() => navigate('/profile/company')}
+              >
                 Completar Perfil
               </Button>
             </CardContent>
@@ -78,7 +84,11 @@ export default function WelcomeCompany() {
               <p className="text-muted-foreground mb-4">
                 Explora perfiles de desarrolladores y encuentra candidatos perfectos para tu equipo.
               </p>
-              <Button variant="hero" className="w-full">
+              <Button 
+                variant="hero" 
+                className="w-full"
+                onClick={() => navigate('/developers')}
+              >
                 Explorar Desarrolladores
               </Button>
             </CardContent>
@@ -200,6 +210,7 @@ export default function WelcomeCompany() {
                 variant="default" 
                 size="lg"
                 className="bg-white text-secondary hover:bg-white/90"
+                onClick={() => navigate('/profile/company')}
               >
                 Completar Perfil de Empresa
               </Button>

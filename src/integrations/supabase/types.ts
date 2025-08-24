@@ -50,6 +50,51 @@ export type Database = {
         }
         Relationships: []
       }
+      contacts: {
+        Row: {
+          company_id: string
+          created_at: string
+          developer_id: string
+          id: string
+          message: string
+          read: boolean
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          developer_id: string
+          id?: string
+          message: string
+          read?: boolean
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          developer_id?: string
+          id?: string
+          message?: string
+          read?: boolean
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_contacts_company"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_contacts_developer"
+            columns: ["developer_id"]
+            isOneToOne: false
+            referencedRelation: "developers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       developers: {
         Row: {
           avatar_url: string | null
@@ -92,6 +137,33 @@ export type Database = {
         }
         Relationships: []
       }
+      password_reset_codes: {
+        Row: {
+          code: string
+          created_at: string
+          email: string
+          expires_at: string
+          id: string
+          used: boolean
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          email: string
+          expires_at?: string
+          id?: string
+          used?: boolean
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          used?: boolean
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -113,6 +185,24 @@ export type Database = {
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      sectors: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
         }
         Relationships: []
       }
