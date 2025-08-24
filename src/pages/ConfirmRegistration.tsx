@@ -178,19 +178,11 @@ export default function ConfirmRegistration() {
             {status !== 'loading' && (
               <div className="space-y-3">
                 <Button 
-                  onClick={() => navigate('/login')} 
+                  onClick={() => navigate('/')} 
                   className="w-full"
                   variant="default"
                 >
-                  Iniciar Sesión
-                </Button>
-                
-                <Button 
-                  onClick={() => navigate('/')} 
-                  variant="outline" 
-                  className="w-full"
-                >
-                  Volver al Inicio
+                  Comencemos
                 </Button>
               </div>
             )}
@@ -211,13 +203,6 @@ export default function ConfirmRegistration() {
             )}
           </CardContent>
         </Card>
-
-        {/* Footer */}
-        <div className="text-center mt-8">
-          <p className="text-sm text-muted-foreground">
-            ¿Tienes problemas? Contacta nuestro soporte técnico.
-          </p>
-        </div>
       </div>
     </div>
   );
