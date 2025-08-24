@@ -13,22 +13,64 @@ export default function ConfirmRegistration() {
 
   useEffect(() => {
     const confirmUser = async () => {
-      const token_hash = searchParams.get('token_hash');
+      // Check different possible parameter formats that Supabase might send
+      const token_hash = searchParams.get('token_hash') || searchParams.get('token');
       const type = searchParams.get('type');
+      const access_token = searchParams.get('access_token');
+      const refresh_token = searchParams.get('refresh_token');
+      
+      // Log all URL parameters for debugging
+      console.log('ConfirmRegistration - All search params:', Object.fromEntries(searchParams.entries()));
+      console.log('ConfirmRegistration - token_hash:', token_hash);
+      console.log('ConfirmRegistration - type:', type);
+      console.log('ConfirmRegistration - access_token:', access_token);
+      console.log('ConfirmRegistration - refresh_token:', refresh_token);
+      console.log('ConfirmRegistration - Current URL:', window.location.href);
+
+      // Handle different authentication scenarios
+      if (access_token && refresh_token) {
+        // This might be a direct token response from Supabase
+        try {
+          console.log('ConfirmRegistration - Attempting to set session with tokens');
+          const { data, error } = await supabase.auth.setSession({
+            access_token,
+            refresh_token
+          });
+          
+          if (error) {
+            console.error('ConfirmRegistration - Session error:', error);
+            setStatus('error');
+            setMessage(error.message);
+          } else {
+            console.log('ConfirmRegistration - Session set successfully:', data);
+            setStatus('success');
+            setMessage('¡Tu cuenta ha sido confirmada exitosamente!');
+          }
+          return;
+        } catch (error) {
+          console.error('ConfirmRegistration - Error setting session:', error);
+          setStatus('error');
+          setMessage('Ocurrió un error al confirmar tu cuenta.');
+          return;
+        }
+      }
 
       if (!token_hash || type !== 'signup') {
+        console.error('ConfirmRegistration - Invalid parameters:', { token_hash, type });
         setStatus('error');
-        setMessage('Enlace de confirmación inválido.');
+        setMessage('Enlace de confirmación inválido. Verifica que el enlace sea correcto o intenta registrarte nuevamente.');
         return;
       }
 
       try {
+        console.log('ConfirmRegistration - Attempting OTP verification');
         const { error } = await supabase.auth.verifyOtp({
           token_hash,
           type: 'signup'
         });
 
         if (error) {
+          console.error('ConfirmRegistration - OTP verification error:', error);
           if (error.message.includes('already been confirmed')) {
             setStatus('already-confirmed');
             setMessage('Tu cuenta ya ha sido confirmada anteriormente.');
@@ -37,6 +79,7 @@ export default function ConfirmRegistration() {
             setMessage(error.message);
           }
         } else {
+          console.log('ConfirmRegistration - OTP verification successful');
           setStatus('success');
           setMessage('¡Tu cuenta ha sido confirmada exitosamente!');
         }
